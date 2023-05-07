@@ -2,6 +2,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 const Train = require('./models/train');
+const Booking = require('./models/bookings')
 const trainsRouter = require('./routes/trains')
 const cors = require('cors')
 const XLSX = require('xlsx');
@@ -38,7 +39,6 @@ db.once('open', () => console.log('Connected to Database'))
 //     }]
 // })
 
-trains.deleteMany({})
 
 
 app.use(bodyParser.json());
@@ -89,10 +89,41 @@ app.post("/trains", upload.single("file"), (req, res) => {
         });
 });
 
+app.post('/api/postPassDetails', (req, res) => {
+    try {
+        console.log(req.body)
+        const passengerDetails = req.body.params.passengerObj;
+        const trainObj = req.body.params.trainObj
+        console.log(passengerDetails);
+        console.log(typeof (passengerDetails));
+
+        const booking = new Booking({
+            train: trainObj,
+            user: null,
+            passengerDetails: [passengerDetails],
+        });
+
+        booking.save()
+            .then(() => {
+                console.log('Data saved successfully');
+            })
+            .catch((err) => {
+                console.error(err);
+            });
+        res.send('hi hi')
+    } catch (error) {
+        res.status(400).send({ e: error.message })
+
+    }
+})
+
+
 app.get("/", async (req, res) => {
     let trains = await Train.find()
     res.send({ some: trains })
 });
+
+
 
 
 app.get('/api/getTrain', async (req, res) => {
